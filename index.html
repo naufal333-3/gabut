@@ -1,640 +1,80 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Malam — Pelacak Tidur</title>
-<style>
-  :root{
-    --ink:#0b0f24;
-    --ink-2:#141a3d;
-    --ink-3:#1b2350;
-    --line:rgba(169,156,255,0.22);
-    --moon:#f4ecd8;
-    --moon-dim:#8b8570;
-    --violet:#8b7ff5;
-    --violet-soft:rgba(139,127,245,0.16);
-    --amber:#f5a962;
-    --amber-soft:rgba(245,169,98,0.16);
-    --sage:#7fd9a8;
-    --sage-soft:rgba(127,217,168,0.16);
-    --mist:#a9aed6;
-    --mist-dim:#6b70a0;
-  }
-  *{box-sizing:border-box;}
-  html{scroll-behavior:smooth;}
-  body{
-    margin:0;
-    min-height:100vh;
-    background:
-      radial-gradient(ellipse 900px 500px at 85% -8%, rgba(139,127,245,0.16), transparent 60%),
-      radial-gradient(ellipse 700px 400px at -10% 40%, rgba(245,169,98,0.06), transparent 55%),
-      linear-gradient(180deg, var(--ink) 0%, #06081a 100%);
-    color:var(--moon);
-    font-family:'Segoe UI', system-ui, -apple-system, sans-serif;
-  }
-  .wrap{
-    max-width:660px;
-    margin:0 auto;
-    padding:56px 20px 90px;
-  }
-  header{ margin-bottom:36px; }
-  .moon-icon{
-    width:40px;
-    height:40px;
-    border-radius:50%;
-    background:var(--moon);
-    box-shadow:-13px 3px 0 -3px var(--ink) inset;
-    margin-bottom:20px;
-  }
-  h1{
-    font-family:Georgia,'Times New Roman',serif;
-    font-size:clamp(1.9rem, 5vw, 2.6rem);
-    margin:0 0 10px;
-    line-height:1.15;
-  }
-  .lede{
-    color:var(--mist);
-    max-width:480px;
-    margin:0;
-    font-size:1rem;
-    line-height:1.55;
-  }
-  .card{
-    background:rgba(255,255,255,0.035);
-    border:1px solid var(--line);
-    border-radius:18px;
-    padding:28px;
-    margin-bottom:22px;
-  }
-  .card h2{
-    font-family:Georgia,serif;
-    font-weight:400;
-    font-size:1.25rem;
-    margin:0 0 20px;
-    color:var(--moon);
-  }
-  .field{ margin-bottom:20px; }
-  .field:last-child{ margin-bottom:0; }
-  label{
-    display:block;
-    font-size:0.88rem;
-    color:var(--mist);
-    margin-bottom:8px;
-  }
-  select, input[type="time"]{
-    width:100%;
-    padding:12px 14px;
-    background:rgba(255,255,255,0.05);
-    border:1px solid var(--line);
-    border-radius:10px;
-    color:var(--moon);
-    font-size:1rem;
-    font-family:inherit;
-    outline:none;
-  }
-  select:focus-visible, input[type="time"]:focus-visible, button:focus-visible, .star:focus-visible{
-    outline:2px solid var(--violet);
-    outline-offset:2px;
-  }
-  .row{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:14px;
-  }
-  .stars{ display:flex; gap:8px; }
-  .star{
-    flex:1;
-    padding:10px 0;
-    background:rgba(255,255,255,0.05);
-    border:1px solid var(--line);
-    border-radius:8px;
-    color:var(--mist);
-    cursor:pointer;
-    font-size:1.1rem;
-    transition:background .15s, color .15s, border-color .15s;
-  }
-  .star.active{
-    background:var(--violet-soft);
-    border-color:var(--violet);
-    color:var(--moon);
-  }
-  button.primary{
-    width:100%;
-    padding:14px;
-    margin-top:6px;
-    background:var(--violet);
-    color:var(--ink);
-    border:none;
-    border-radius:10px;
-    font-size:1rem;
-    font-weight:600;
-    cursor:pointer;
-    font-family:inherit;
-  }
-  button.primary:hover{ background:#a49bff; }
-  button.secondary{
-    width:100%;
-    padding:12px;
-    margin-top:10px;
-    background:transparent;
-    color:var(--mist);
-    border:1px solid var(--line);
-    border-radius:10px;
-    font-size:0.92rem;
-    cursor:pointer;
-    font-family:inherit;
-  }
-  button.secondary:hover{ border-color:var(--violet); color:var(--moon); }
+function hitungBMI(){
 
-  .result{
-    margin-top:26px;
-    padding-top:26px;
-    border-top:1px solid var(--line);
-    display:none;
-  }
-  .result.show{ display:block; }
-  .result-top{
-    display:flex;
-    align-items:center;
-    gap:22px;
-    margin-bottom:18px;
-  }
-  .moon-meter{
-    flex:none;
-    width:88px;
-    height:88px;
-    border-radius:50%;
-    background:var(--ink-3);
-    border:1px solid var(--line);
-    position:relative;
-    overflow:hidden;
-  }
-  .moon-meter .fill{
-    position:absolute;
-    left:0; right:0; bottom:0;
-    height:0%;
-    transition:height 1s cubic-bezier(.2,.8,.2,1), background .4s;
-  }
-  .result-text .duration{
-    font-size:1.9rem;
-    font-family:Georgia,serif;
-    margin:0 0 8px;
-  }
-  .verdict{
-    display:inline-block;
-    padding:5px 13px;
-    border-radius:999px;
-    font-size:0.82rem;
-    font-weight:600;
-  }
-  .verdict.good{ background:var(--sage-soft); color:var(--sage); }
-  .verdict.warn{ background:var(--amber-soft); color:var(--amber); }
-  .note{
-    color:var(--mist);
-    font-size:0.94rem;
-    line-height:1.6;
-    margin:0 0 18px;
-  }
+let umur = parseInt(document.getElementById("umur").value);
+let berat = parseFloat(document.getElementById("berat").value);
+let tinggi = parseFloat(document.getElementById("tinggi").value) / 100;
 
-  .stats-grid{
-    display:grid;
-    grid-template-columns:repeat(3, 1fr);
-    gap:14px;
-    margin-bottom:22px;
-  }
-  .stat{
-    background:rgba(255,255,255,0.03);
-    border:1px solid var(--line);
-    border-radius:12px;
-    padding:14px 12px;
-    text-align:center;
-  }
-  .stat .num{
-    font-family:Georgia,serif;
-    font-size:1.5rem;
-    display:block;
-    line-height:1.1;
-    margin-bottom:4px;
-  }
-  .stat .label{
-    font-size:0.76rem;
-    color:var(--mist-dim);
-  }
-
-  .chart{
-    display:flex;
-    align-items:flex-end;
-    gap:8px;
-    height:110px;
-    padding-top:10px;
-  }
-  .bar-col{
-    flex:1;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:flex-end;
-    height:100%;
-  }
-  .bar{
-    width:100%;
-    max-width:34px;
-    border-radius:5px 5px 3px 3px;
-    background:var(--mist-dim);
-    transition:height .5s ease;
-  }
-  .bar.good{ background:var(--sage); }
-  .bar.warn{ background:var(--amber); }
-  .bar-label{
-    font-size:0.68rem;
-    color:var(--mist-dim);
-    margin-top:6px;
-  }
-  .chart-empty{
-    color:var(--mist-dim);
-    font-size:0.9rem;
-    padding:20px 0;
-    text-align:center;
-  }
-
-  .history-list{
-    list-style:none;
-    margin:0;
-    padding:0;
-    display:flex;
-    flex-direction:column;
-    gap:10px;
-  }
-  .history-item{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:12px;
-    padding:12px 14px;
-    background:rgba(255,255,255,0.03);
-    border:1px solid var(--line);
-    border-radius:10px;
-  }
-  .history-item .hi-left{
-    display:flex;
-    flex-direction:column;
-    gap:2px;
-  }
-  .history-item .hi-date{ font-size:0.9rem; color:var(--moon); }
-  .history-item .hi-meta{ font-size:0.78rem; color:var(--mist-dim); }
-  .history-item .hi-right{
-    display:flex;
-    align-items:center;
-    gap:10px;
-  }
-  .del-btn{
-    background:transparent;
-    border:none;
-    color:var(--mist-dim);
-    cursor:pointer;
-    font-size:0.85rem;
-    padding:4px 6px;
-  }
-  .del-btn:hover{ color:var(--amber); }
-
-  footer{
-    text-align:center;
-    margin-top:36px;
-    color:var(--mist-dim);
-    font-size:0.82rem;
-    line-height:1.6;
-  }
-
-  @media (max-width:480px){
-    .stats-grid{ grid-template-columns:1fr 1fr 1fr; gap:8px; }
-    .stat .num{ font-size:1.2rem; }
-    .result-top{ flex-direction:column; align-items:flex-start; gap:14px; }
-  }
-  @media (prefers-reduced-motion: reduce){
-    *{ transition:none !important; scroll-behavior:auto !important; }
-  }
-</style>
-</head>
-<body>
-<div class="wrap">
-  <header>
-    <div class="moon-icon"></div>
-    <h1>Cukup nggak, tidurmu semalam?</h1>
-    <p class="lede">Catat jam tidurmu, bandingkan dengan rekomendasi sesuai usia, dan lihat pola tidurmu dari waktu ke waktu.</p>
-  </header>
-
-  <div class="card">
-    <h2>Malam ini</h2>
-    <div class="field">
-      <label for="age">Kelompok usia</label>
-      <select id="age">
-        <option value="6-13" data-min="9" data-max="11">Anak sekolah (6–13 tahun)</option>
-        <option value="14-17" data-min="8" data-max="10">Remaja (14–17 tahun)</option>
-        <option value="18-25" data-min="7" data-max="9" selected>Dewasa muda (18–25 tahun)</option>
-        <option value="26-64" data-min="7" data-max="9">Dewasa (26–64 tahun)</option>
-        <option value="65+" data-min="7" data-max="8">Lansia (65 tahun ke atas)</option>
-      </select>
-    </div>
-
-    <div class="row">
-      <div class="field">
-        <label for="bedtime">Jam mulai tidur</label>
-        <input type="time" id="bedtime" value="23:00">
-      </div>
-      <div class="field">
-        <label for="waketime">Jam bangun</label>
-        <input type="time" id="waketime" value="06:00">
-      </div>
-    </div>
-
-    <div class="field">
-      <label id="quality-label">Kualitas tidur (opsional)</label>
-      <div class="stars" role="group" aria-labelledby="quality-label">
-        <button type="button" class="star" data-val="1">1</button>
-        <button type="button" class="star" data-val="2">2</button>
-        <button type="button" class="star" data-val="3">3</button>
-        <button type="button" class="star" data-val="4">4</button>
-        <button type="button" class="star" data-val="5">5</button>
-      </div>
-    </div>
-
-    <button class="primary" onclick="checkSleep()">Cek durasi tidurku</button>
-
-    <div class="result" id="result" aria-live="polite">
-      <div class="result-top">
-        <div class="moon-meter"><div class="fill" id="moonFill"></div></div>
-        <div class="result-text">
-          <p class="duration" id="durationText"></p>
-          <span class="verdict" id="verdictBadge"></span>
-        </div>
-      </div>
-      <p class="note" id="noteText"></p>
-      <button class="secondary" id="saveBtn" onclick="saveEntry()">Simpan ke riwayat</button>
-    </div>
-  </div>
-
-  <div class="card">
-    <h2>Ringkasan</h2>
-    <div class="stats-grid">
-      <div class="stat">
-        <span class="num" id="statStreak">0</span>
-        <span class="label">malam beruntun cukup</span>
-      </div>
-      <div class="stat">
-        <span class="num" id="statAvg">–</span>
-        <span class="label">rata-rata 7 hari</span>
-      </div>
-      <div class="stat">
-        <span class="num" id="statCount">0</span>
-        <span class="label">catatan tersimpan</span>
-      </div>
-    </div>
-    <div id="chartWrap">
-      <div class="chart-empty" id="chartEmpty">Belum ada catatan. Simpan hasil cekmu untuk melihat tren di sini.</div>
-      <div class="chart" id="chart" style="display:none;"></div>
-    </div>
-  </div>
-
-  <div class="card" id="historyCard" style="display:none;">
-    <h2>Riwayat</h2>
-    <ul class="history-list" id="historyList"></ul>
-    <button class="secondary" onclick="exportCSV()">Unduh riwayat (.csv)</button>
-  </div>
-
-  <footer>Rentang durasi mengacu pada rekomendasi umum National Sleep Foundation. Kebutuhan tiap orang bisa sedikit berbeda.<br>Data disimpan hanya di perangkatmu (localStorage), tidak dikirim ke server mana pun.</footer>
-</div>
-
-<script>
-const STORAGE_KEY = 'malam.sleepEntries';
-let selectedQuality = null;
-let lastResult = null;
-
-document.querySelectorAll('.star').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const val = Number(btn.dataset.val);
-    selectedQuality = (selectedQuality === val) ? null : val;
-    document.querySelectorAll('.star').forEach(s => {
-      s.classList.toggle('active', selectedQuality !== null && Number(s.dataset.val) <= selectedQuality);
-    });
-  });
-});
-
-function loadEntries(){
-  try{
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
-  }catch(e){
-    return [];
-  }
-}
-function saveEntries(entries){
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
-}
-
-function checkSleep(){
-  const bedtime = document.getElementById('bedtime').value;
-  const waketime = document.getElementById('waketime').value;
-  const ageSelect = document.getElementById('age');
-  const selectedOption = ageSelect.options[ageSelect.selectedIndex];
-  const min = parseFloat(selectedOption.dataset.min);
-  const max = parseFloat(selectedOption.dataset.max);
-
-  if(!bedtime || !waketime){ return; }
-
-  const [bh, bm] = bedtime.split(':').map(Number);
-  const [wh, wm] = waketime.split(':').map(Number);
-
-  let bedMinutes = bh * 60 + bm;
-  let wakeMinutes = wh * 60 + wm;
-  let diff = wakeMinutes - bedMinutes;
-  if(diff <= 0){ diff += 24 * 60; }
-
-  const hours = Math.floor(diff / 60);
-  const minutes = diff % 60;
-  const totalHours = diff / 60;
-
-  const result = document.getElementById('result');
-  const durationText = document.getElementById('durationText');
-  const verdictBadge = document.getElementById('verdictBadge');
-  const noteText = document.getElementById('noteText');
-  const moonFill = document.getElementById('moonFill');
-
-  durationText.textContent = `${hours} jam ${minutes} menit`;
-  result.classList.add('show');
-
-  let verdict, verdictClass, note;
-  if(totalHours < min){
-    const kurang = (min - totalHours).toFixed(1);
-    verdict = 'Kurang tidur';
-    verdictClass = 'warn';
-    note = `Durasi tidurmu di bawah rekomendasi (${min}–${max} jam). Kamu kekurangan sekitar ${kurang} jam. Coba maju jam tidurmu sedikit demi sedikit malam ini.`;
-  } else if(totalHours > max){
-    const lebih = (totalHours - max).toFixed(1);
-    verdict = 'Lebih dari cukup';
-    verdictClass = 'warn';
-    note = `Durasi tidurmu melebihi rekomendasi (${min}–${max} jam) sekitar ${lebih} jam. Tidur terlalu lama kadang juga bikin badan lemas, coba perhatikan kualitas tidurnya juga.`;
-  } else {
-    verdict = 'Tidurmu cukup';
-    verdictClass = 'good';
-    note = `Durasi tidurmu ada di rentang yang disarankan (${min}–${max} jam). Pertahankan jadwal ini ya.`;
-  }
-
-  verdictBadge.textContent = verdict;
-  verdictBadge.className = 'verdict ' + verdictClass;
-  noteText.textContent = note;
-
-  const pct = Math.max(0, Math.min(1, totalHours / max));
-  moonFill.style.height = (pct * 100) + '%';
-  moonFill.style.background = verdictClass === 'good'
-    ? 'linear-gradient(180deg, var(--sage), #5fc08a)'
-    : (totalHours < min
-        ? 'linear-gradient(180deg, var(--amber), #e0884a)'
-        : 'linear-gradient(180deg, var(--moon), #d8cdaf)');
-
-  lastResult = {
-    date: new Date().toISOString().slice(0,10),
-    bedtime, waketime,
-    ageGroup: ageSelect.value,
-    min, max,
-    hours, minutes, totalHours,
-    verdict, verdictClass,
-    quality: selectedQuality
-  };
-}
-
-function saveEntry(){
-  if(!lastResult) return;
-  const entries = loadEntries();
-  entries.push({ ...lastResult, id: Date.now() });
-  entries.sort((a,b) => a.date.localeCompare(b.date));
-  saveEntries(entries);
-  renderAll();
-
-  const saveBtn = document.getElementById('saveBtn');
-  const original = saveBtn.textContent;
-  saveBtn.textContent = 'Tersimpan ✓';
-  setTimeout(() => { saveBtn.textContent = original; }, 1500);
-}
-
-function deleteEntry(id){
-  const entries = loadEntries().filter(e => e.id !== id);
-  saveEntries(entries);
-  renderAll();
-}
-
-function computeStreak(entries){
-  let streak = 0;
-  for(let i = entries.length - 1; i >= 0; i--){
-    if(entries[i].verdictClass === 'good'){ streak++; }
-    else { break; }
-  }
-  return streak;
-}
-
-function renderStats(entries){
-  document.getElementById('statCount').textContent = entries.length;
-  document.getElementById('statStreak').textContent = computeStreak(entries);
-
-  const last7 = entries.slice(-7);
-  if(last7.length === 0){
-    document.getElementById('statAvg').textContent = '–';
-  } else {
-    const avg = last7.reduce((sum, e) => sum + e.totalHours, 0) / last7.length;
-    document.getElementById('statAvg').textContent = avg.toFixed(1) + ' j';
-  }
-}
-
-function renderChart(entries){
-  const chart = document.getElementById('chart');
-  const empty = document.getElementById('chartEmpty');
-  const last7 = entries.slice(-7);
-
-  if(last7.length === 0){
-    chart.style.display = 'none';
-    empty.style.display = 'block';
+if(!umur || !berat || !tinggi){
+    alert("Lengkapi semua data!");
     return;
-  }
-  chart.style.display = 'flex';
-  empty.style.display = 'none';
-  chart.innerHTML = '';
-
-  const maxHours = Math.max(10, ...last7.map(e => e.totalHours));
-  last7.forEach(e => {
-    const col = document.createElement('div');
-    col.className = 'bar-col';
-    const bar = document.createElement('div');
-    bar.className = 'bar ' + e.verdictClass;
-    const heightPct = Math.max(6, (e.totalHours / maxHours) * 100);
-    bar.style.height = heightPct + '%';
-    const label = document.createElement('div');
-    label.className = 'bar-label';
-    const d = new Date(e.date + 'T00:00:00');
-    label.textContent = d.toLocaleDateString('id-ID', { day:'2-digit', month:'2-digit' });
-    col.appendChild(bar);
-    col.appendChild(label);
-    chart.appendChild(col);
-  });
 }
 
-function renderHistory(entries){
-  const card = document.getElementById('historyCard');
-  const list = document.getElementById('historyList');
-  list.innerHTML = '';
+let bmi = berat / (tinggi * tinggi);
 
-  if(entries.length === 0){
-    card.style.display = 'none';
-    return;
-  }
-  card.style.display = 'block';
+let kategori = "";
+let warna = "";
+let persen = Math.min((bmi / 40) * 100, 100);
 
-  [...entries].reverse().forEach(e => {
-    const li = document.createElement('li');
-    li.className = 'history-item';
-    const d = new Date(e.date + 'T00:00:00');
-    const dateStr = d.toLocaleDateString('id-ID', { weekday:'short', day:'numeric', month:'short' });
-    const qualityStr = e.quality ? ` · kualitas ${e.quality}/5` : '';
-
-    li.innerHTML = `
-      <div class="hi-left">
-        <span class="hi-date">${dateStr}</span>
-        <span class="hi-meta">${e.hours} jam ${e.minutes} menit${qualityStr}</span>
-      </div>
-      <div class="hi-right">
-        <span class="verdict ${e.verdictClass}">${e.verdict}</span>
-        <button class="del-btn" aria-label="Hapus catatan ${dateStr}" onclick="deleteEntry(${e.id})">✕</button>
-      </div>
-    `;
-    list.appendChild(li);
-  });
+if(bmi < 18.5){
+    kategori = "Kurus";
+    warna = "#3B82F6"; // Biru
+}
+else if(bmi < 25){
+    kategori = "Normal";
+    warna = "#22C55E"; // Hijau
+}
+else if(bmi < 30){
+    kategori = "Overweight";
+    warna = "#FACC15"; // Kuning
+}
+else{
+    kategori = "Obesitas";
+    warna = "#EF4444"; // Merah
 }
 
-function exportCSV(){
-  const entries = loadEntries();
-  if(entries.length === 0) return;
-  const header = 'tanggal,jam_tidur,jam_bangun,durasi_jam,durasi_menit,kelompok_usia,status,kualitas\n';
-  const rows = entries.map(e =>
-    [e.date, e.bedtime, e.waketime, e.hours, e.minutes, e.ageGroup, e.verdict, e.quality ?? ''].join(',')
-  ).join('\n');
-  const blob = new Blob([header + rows], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'riwayat-tidur.csv';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+let bbIdealMin = (18.5 * (tinggi * tinggi)).toFixed(1);
+let bbIdealMax = (24.9 * (tinggi * tinggi)).toFixed(1);
+
+let kalori = Math.round(berat * 30);
+
+let saran = "";
+
+if(umur < 18){
+    saran = "Usia remaja memerlukan pola makan dan aktivitas yang seimbang untuk pertumbuhan.";
+}
+else if(umur <= 40){
+    saran = "Pertahankan pola hidup sehat dan olahraga rutin.";
+}
+else if(umur <= 60){
+    saran = "Jaga berat badan ideal untuk mengurangi risiko penyakit kronis.";
+}
+else{
+    saran = "Perhatikan massa otot, kesehatan tulang, dan konsumsi nutrisi yang cukup.";
 }
 
-function renderAll(){
-  const entries = loadEntries();
-  renderStats(entries);
-  renderChart(entries);
-  renderHistory(entries);
-}
+document.getElementById("result").style.display = "block";
 
-renderAll();
-</script>
-</body>
-</html>
+document.getElementById("bmiText").innerHTML =
+`BMI Kamu: ${bmi.toFixed(1)}`;
+
+document.getElementById("kategori").innerHTML =
+`Kategori: ${kategori}`;
+
+document.getElementById("kategori").style.background = warna;
+document.getElementById("kategori").style.color = "white";
+
+document.getElementById("bar").style.width = persen + "%";
+document.getElementById("bar").style.background = warna;
+
+document.getElementById("ideal").innerHTML =
+`Berat badan ideal: ${bbIdealMin} - ${bbIdealMax} kg`;
+
+document.getElementById("kalori").innerHTML =
+`Estimasi kebutuhan kalori: ${kalori} kkal/hari`;
+
+document.getElementById("saran").innerHTML =
+`Saran: ${saran}`;
+
+document.querySelector(".container").style.border =
+"3px solid " + warna;
+}

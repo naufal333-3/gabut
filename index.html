@@ -1,239 +1,76 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Smart BMI Checker</title>
-
-<style>
-:root{
-    --bg1:#0f172a;
-    --bg2:#1e293b;
-    --text:#ffffff;
-    --card:#ffffff15;
-}
-
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-    font-family:'Segoe UI',sans-serif;
-}
-
-body{
-    min-height:100vh;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    background:linear-gradient(135deg,var(--bg1),var(--bg2));
-    color:var(--text);
-    padding:20px;
-}
-
-.container{
-    width:100%;
-    max-width:500px;
-    background:var(--card);
-    backdrop-filter:blur(10px);
-    border-radius:20px;
-    padding:30px;
-    box-shadow:0 10px 30px rgba(0,0,0,.3);
-    transition:.4s;
-}
-
-h1{
-    text-align:center;
-    margin-bottom:10px;
-}
-
-.desc{
-    text-align:center;
-    opacity:.8;
-    margin-bottom:25px;
-}
-
-input{
-    width:100%;
-    padding:12px;
-    margin-bottom:15px;
-    border:none;
-    border-radius:10px;
-    font-size:16px;
-}
-
-button{
-    width:100%;
-    padding:14px;
-    border:none;
-    border-radius:10px;
-    background:#38bdf8;
-    color:white;
-    font-size:16px;
-    font-weight:bold;
-    cursor:pointer;
-    transition:.3s;
-}
-
-button:hover{
-    transform:scale(1.03);
-}
-
-.result{
-    display:none;
-    margin-top:25px;
-}
-
-#bmiText{
-    text-align:center;
-    margin-bottom:15px;
-}
-
-.progress{
-    width:100%;
-    height:22px;
-    background:#334155;
-    border-radius:20px;
-    overflow:hidden;
-    margin-bottom:15px;
-}
-
-.bar{
-    height:100%;
-    width:0%;
-    transition:1s;
-}
-
-.info{
-    text-align:center;
-    padding:12px;
-    border-radius:12px;
-    font-weight:bold;
-    margin-bottom:15px;
-}
-
-.data{
-    background:rgba(255,255,255,.08);
-    padding:12px;
-    border-radius:10px;
-    margin-bottom:10px;
-}
-</style>
-</head>
-<body>
-
-<div class="container">
-
-<h1>⚖ Smart BMI Checker</h1>
-<p class="desc">Cek BMI dan berat badan idealmu</p>
-
-<input type="number" id="umur" placeholder="Umur (tahun)">
-<input type="number" id="berat" placeholder="Berat badan (kg)">
-<input type="number" id="tinggi" placeholder="Tinggi badan (cm)">
-
-<button onclick="hitungBMI()">Hitung Sekarang</button>
-
-<div class="result" id="result">
-
-<h2 id="bmiText"></h2>
-
-<div class="progress">
-<div class="bar" id="bar"></div>
-</div>
-
-<div class="info" id="kategori"></div>
-
-<div class="data" id="ideal"></div>
-<div class="data" id="kalori"></div>
-<div class="data" id="saran"></div>
-
-</div>
-
-</div>
-
 <script>
+function hitungBMI() {
 
-function hitungBMI(){
+    const umur = Number(document.getElementById("umur").value);
+    const berat = Number(document.getElementById("berat").value);
+    const tinggiCm = Number(document.getElementById("tinggi").value);
 
-let umur = parseInt(document.getElementById("umur").value);
-let berat = parseFloat(document.getElementById("berat").value);
-let tinggi = parseFloat(document.getElementById("tinggi").value)/100;
+    if (umur <= 0 || berat <= 0 || tinggiCm <= 0) {
+        alert("Masukkan umur, berat badan, dan tinggi badan dengan benar.");
+        return;
+    }
 
-if(!umur || !berat || !tinggi){
-    alert("Lengkapi semua data!");
-    return;
-}
+    const tinggi = tinggiCm / 100;
+    const bmi = berat / (tinggi * tinggi);
 
-let bmi = berat/(tinggi*tinggi);
+    let kategori, warna;
 
-let kategori="";
-let warna="";
-let persen=Math.min((bmi/40)*100,100);
+    if (bmi < 18.5) {
+        kategori = "Kurus";
+        warna = "#3B82F6";
+    } else if (bmi < 25) {
+        kategori = "Normal";
+        warna = "#22C55E";
+    } else if (bmi < 30) {
+        kategori = "Overweight";
+        warna = "#FACC15";
+    } else {
+        kategori = "Obesitas";
+        warna = "#EF4444";
+    }
 
-if(bmi < 18.5){
-    kategori="Kurus";
-    warna="#3B82F6";
-}
-else if(bmi < 25){
-    kategori="Normal";
-    warna="#22C55E";
-}
-else if(bmi < 30){
-    kategori="Overweight";
-    warna="#FACC15";
-}
-else{
-    kategori="Obesitas";
-    warna="#EF4444";
-}
+    const bbIdealMin = (18.5 * tinggi * tinggi).toFixed(1);
+    const bbIdealMax = (24.9 * tinggi * tinggi).toFixed(1);
+    const kalori = Math.round(berat * 30);
 
-let bbIdealMin=(18.5*(tinggi*tinggi)).toFixed(1);
-let bbIdealMax=(24.9*(tinggi*tinggi)).toFixed(1);
+    let saran;
 
-let kalori=Math.round(berat*30);
+    if (umur < 18) {
+        saran = "Perbanyak aktivitas fisik dan konsumsi makanan bergizi.";
+    } else if (umur <= 40) {
+        saran = "Pertahankan pola hidup sehat dan olahraga rutin.";
+    } else if (umur <= 60) {
+        saran = "Jaga berat badan ideal untuk mengurangi risiko penyakit kronis.";
+    } else {
+        saran = "Perhatikan massa otot, kesehatan tulang, dan nutrisi harian.";
+    }
 
-let saran="";
+    document.getElementById("result").style.display = "block";
 
-if(umur < 18){
-    saran="Perbanyak aktivitas fisik dan konsumsi makanan bergizi untuk mendukung pertumbuhan.";
-}
-else if(umur <= 40){
-    saran="Pertahankan pola hidup sehat dan olahraga secara rutin.";
-}
-else if(umur <= 60){
-    saran="Jaga berat badan ideal untuk membantu mengurangi risiko penyakit kronis.";
-}
-else{
-    saran="Perhatikan massa otot, kesehatan tulang, dan asupan nutrisi harian.";
-}
+    document.getElementById("bmiText").innerHTML =
+        `BMI Kamu: <b>${bmi.toFixed(1)}</b>`;
 
-document.getElementById("result").style.display="block";
+    document.getElementById("kategori").innerHTML =
+        `Kategori: ${kategori}`;
 
-document.getElementById("bmiText").innerHTML=
-"BMI Kamu: <b>"+bmi.toFixed(1)+"</b>";
+    document.getElementById("kategori").style.backgroundColor = warna;
+    document.getElementById("kategori").style.color = "#fff";
 
-document.getElementById("kategori").innerHTML=
-"Kategori: "+kategori;
+    document.getElementById("bar").style.width =
+        Math.min((bmi / 40) * 100, 100) + "%";
 
-document.getElementById("kategori").style.background=warna;
-document.getElementById("kategori").style.color="white";
+    document.getElementById("bar").style.backgroundColor = warna;
 
-document.getElementById("bar").style.width=persen+"%";
-document.getElementById("bar").style.background=warna;
+    document.getElementById("ideal").innerHTML =
+        `🎯 Berat Badan Ideal: ${bbIdealMin} - ${bbIdealMax} kg`;
 
-document.getElementById("ideal").innerHTML=
-"🎯 Berat Badan Ideal: "+bbIdealMin+" - "+bbIdealMax+" kg";
+    document.getElementById("kalori").innerHTML =
+        `🔥 Estimasi Kalori Harian: ${kalori} kkal`;
 
-document.getElementById("kalori").innerHTML=
-"🔥 Estimasi Kalori Harian: "+kalori+" kkal";
+    document.getElementById("saran").innerHTML =
+        `💡 ${saran}`;
 
-document.getElementById("saran").innerHTML=
-"💡 "+saran;
-
-document.querySelector(".container").style.border=
-"3px solid "+warna;
-
+    document.querySelector(".container").style.border =
+        `3px solid ${warna}`;
 }
 </script>
-
-</body>
-</html>
